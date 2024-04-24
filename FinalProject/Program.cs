@@ -47,7 +47,7 @@ namespace ConnectFourGame
 
             Console.WriteLine(new string('-', Cols * 2 + 1));
 
-            for (int i = 0; i < Cols; i++)
+            for (int i = 1; i <= Cols; i++)
             {
                 Console.Write(" " + i);
             }
@@ -70,7 +70,7 @@ namespace ConnectFourGame
         //places the piece on the board
         public bool PlacePiece(int column, int player)
         {
-
+            Console.Clear();
             if(column < 0 || column >= Cols)
                 return false;
             for (int i = 0; i < Rows; i++)
@@ -99,14 +99,14 @@ namespace ConnectFourGame
 
             for (int i = 0; i <= Rows - 4; i++)
             {
-                for (int j = 0; j < Cols; j++)
+                for (int j = 0; j <= Cols - 4; j++)
                 {
-                    if (Board[j, i] == player && Board[j, i + 1] == player && Board[j, i + 2] == player && Board[j, i + 3] == player)
+                    if (Board[j, i] == player && Board[j + 1, i + 1] == player && Board[j + 2, i + 2] == player && Board[j + 3, i + 3] == player)
                         return true;
                 }
             }
 
-            //check diagonally (top left to bottom right)
+            // Check diagonally (top left to bottom right)
             for (int i = 0; i <= Rows - 4; i++)
             {
                 for (int j = 0; j <= Cols - 4; j++)
@@ -116,7 +116,7 @@ namespace ConnectFourGame
                 }
             }
 
-            //check diagonally (top left to bottom left)
+            // Check diagonally (top right to bottom left)
             for (int i = 0; i <= Rows - 4; i++)
             {
                 for (int j = 3; j < Cols; j++)
@@ -132,7 +132,7 @@ namespace ConnectFourGame
         //checks if the board is full 
         public bool IsBoardFull()
         {
-            for (int i = 0; i <= Cols; i++)
+            for (int i = 0; i < Cols; i++)
             {
                 if (Board[i, Rows - 1] == 0)
                     return false;
@@ -153,18 +153,96 @@ namespace ConnectFourGame
     public interface ITwoPlayerGame
     {
         void StartingTwoPlayerGame();
-        void SetPlayersNames(string player1Name, string player2Name);
+
     }
 
     public class SinglePlayerGame : ISinglePlayerGame
     {
         // add logic for single player game and add other features for single player mode
 
+        private string PlayerName;
+        private GameBoard gameBoard;
+
+        public SinglePlayerGame(string playerName)
+        {
+            PlayerName = playerName;
+            gameBoard = new GameBoard();
+        }
 
         public void StartingSinglePlayerGame()
         {
-         
-            
+            Console.WriteLine($"Welcome {PlayerName} to the single-player mode");
+            gameBoard.PrintBoard();
+            PlayGame();
+        }
+
+        private void PlayGame()
+        {
+
+            int currentPlayer = 1;
+            bool gameFinished = false;
+
+            Random random = new Random(); //generates computer moves
+
+            while(!gameFinished)
+            {
+
+                if (currentPlayer == 1)
+                {
+                    Console.WriteLine($"It's your turn, {PlayerName}");
+                    Console.WriteLine($"Enter the column number to place your piece:");
+                    int column;
+
+                    while(!int.TryParse(Console.ReadLine(), out column) || column < 0 || column >= GameBoard.Cols)
+                    {
+                        Console.WriteLine("Invalid input. please enter a valid column number.");
+                    }
+
+                    if(gameBoard.PlacePiece(column, currentPlayer))
+                    {
+                        gameBoard.PrintBoard();
+                        if (gameBoard.CheckWin(currentPlayer))
+                        {
+                            Console.WriteLine($"{PlayerName} Wins!");
+                            gameFinished = true;
+                        }else if (gameBoard.IsBoardFull())
+                        {
+                            Console.WriteLine("The game end in a draw");
+                            gameFinished = true;
+                        }
+                        else
+                        {
+                            currentPlayer = 2; // swtiches to computer move
+                        }
+                    }
+                    else
+                    {
+                        Console.WriteLine("Column is full. Please choose another column");
+                    }
+
+                }
+                else
+                {
+                    //computers turn
+
+                    int column = random.Next(0, GameBoard.Cols);
+                    Console.WriteLine($"Computer places its piece in the column {column}");
+                    if (gameBoard.PlacePiece(column, currentPlayer))
+                    {
+                        Console.WriteLine("Computer Wins!");
+                        gameFinished = true;
+                    }else if (gameBoard.IsBoardFull())
+                    {
+                        Console.WriteLine("The game ends in a draw.");
+                        gameFinished = true;
+                    }
+                    else
+                    {
+                        currentPlayer = 1; // switch back to player 1
+                    }
+                }
+                
+            }
         }
     }
 
@@ -176,9 +254,12 @@ namespace ConnectFourGame
         private string Player2Name;
         private GameBoard gameBoard;
 
-        public TwoPlayerGame()
+        public TwoPlayerGame(string player1Name, string player2Name)
         {
+            Player1Name = player1Name;
+            Player2Name = player2Name;  
             gameBoard = new GameBoard();
+
         }
 
         public void StartingTwoPlayerGame()
@@ -186,12 +267,6 @@ namespace ConnectFourGame
             Console.WriteLine($"Welcome {Player1Name} and {Player2Name} to the two player mode");
             gameBoard.PrintBoard();
             PlayGame();
-        }
-
-        public void SetPlayersNames(string player1Name, string player2Name)
-        {
-            this.Player1Name = player1Name;
-            this.Player2Name = player2Name;
         }
 
         private void PlayGame()
@@ -218,7 +293,7 @@ namespace ConnectFourGame
                     gameBoard.PrintBoard();
                     if (gameBoard.CheckWin(currentPlayer))
                     {
-                        Console.WriteLine($"{GetPlayerName(currentPlayer)}");
+                        Console.WriteLine($"{GetPlayerName(currentPlayer)} Wins");
                         gameFinished = true;
                     }
                     else if (gameBoard.IsBoardFull())
@@ -235,6 +310,7 @@ namespace ConnectFourGame
                 {
                     Console.WriteLine("Column is full. PLease choose another Column");
                 }
+               
             }
         }
 
@@ -279,8 +355,7 @@ namespace ConnectFourGame
             switch (userIn)
             {
                 case "1":
-                    ISinglePlayerGame singlePlayerGame = new SinglePlayerGame();
-                    singlePlayerGame.StartingSinglePlayerGame();
+                    StartSinglePlayerGame();
                     break;
                 case "2":
                     StartTwoPlayerGame();
@@ -301,13 +376,21 @@ namespace ConnectFourGame
             string player1Name = Console.ReadLine();
             Console.WriteLine("Enter Player 2's name:");
             string player2Name = Console.ReadLine();
+            Console.Clear();
             
-            ITwoPlayerGame twoPlayerGame = new TwoPlayerGame();
-            twoPlayerGame.SetPlayersNames(player1Name, player2Name);
+            ITwoPlayerGame twoPlayerGame = new TwoPlayerGame(player1Name, player2Name);
             twoPlayerGame.StartingTwoPlayerGame();
             
+        }
 
 
+        private void StartSinglePlayerGame()
+        {
+            Console.WriteLine("Enter players name");
+            string playerName = Console.ReadLine();
+
+            ISinglePlayerGame singlePlayerGame = new SinglePlayerGame(playerName);
+            singlePlayerGame.StartingSinglePlayerGame();
         }
 
         private void ExitGame()
@@ -328,12 +411,6 @@ namespace ConnectFourGame
             InitializeGame initialize  = new InitializeGame();
 
             initialize.StartGame();
-
-
-
-
-
-
         }
     }
 }
