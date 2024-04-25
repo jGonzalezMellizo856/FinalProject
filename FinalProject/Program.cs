@@ -10,7 +10,7 @@ namespace ConnectFourGame
     class GameBoard //class to initialize the game board might change later for player usage
     {
         public const int Rows = 6;
-        public const int Cols = 7;
+        public const int Cols = 8;
         private int[,] Board;
 
         public GameBoard()
@@ -37,7 +37,7 @@ namespace ConnectFourGame
         {
             for (int i = Rows - 1; i >= 0; i--)
             {
-                for (int j = 0; j < Cols; j++)
+                for (int j = 0; j < Cols - 1; j++)
                 {
                     Console.Write("|");
                     Console.Write(GetPieceSymbol(Board[j, i]));
@@ -45,9 +45,9 @@ namespace ConnectFourGame
                 Console.WriteLine("|");
             }
 
-            Console.WriteLine(new string('-', Cols * 2 + 1));
+            Console.WriteLine(new string('-', Cols * 2 - 1));
 
-            for (int i = 1; i <= Cols; i++)
+            for (int i = 1; i <= Cols - 1; i++)
             {
                 Console.Write(" " + i);
             }
@@ -71,8 +71,13 @@ namespace ConnectFourGame
         public bool PlacePiece(int column, int player)
         {
             Console.Clear();
-            if(column < 0 || column >= Cols)
+            column--;
+
+            if (column < 0 || column >= Cols)
                 return false;
+            if (Board[column, Rows - 1] != 0)
+                return false;
+
             for (int i = 0; i < Rows; i++)
             {
                 if (Board[column, i] == 0)
